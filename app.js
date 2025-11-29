@@ -729,8 +729,9 @@ async function summarizeTranscription(eventId) {
         const result = await response.json();
         
         if (!response.ok) {
+            console.error('API Error:', result);
             localStorage.removeItem('gemini_api_key');
-            alert('Invalid API key. Please enter a valid Gemini API key.');
+            alert(`API Error: ${result.error?.message || 'Invalid API key'}`);
             btn.textContent = '✨ Summarize';
             btn.disabled = false;
             return;
