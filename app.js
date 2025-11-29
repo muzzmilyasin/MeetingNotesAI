@@ -726,12 +726,16 @@ async function summarizeTranscription(eventId) {
             }
         );
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API error: ${response.status} - ${errorText}`);
-        }
-
         const result = await response.json();
+        
+        if (!response.ok) {
+            localStorage.removeItem('gemini_api_key');
+            alert('Invalid API key. Please enter a valid Gemini API key.');
+            btn.textContent = '✨ Summarize';
+            btn.disabled = false;
+            return;
+        }
+        
         const summary = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary generated';
         
         const sentences = event.transcription.match(/[^.!?]+[.!?]+/g) || [];
