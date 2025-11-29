@@ -1,11 +1,6 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const HF_API_TOKEN = process.env.HF_API_TOKEN || '';
 
-const PORT = process.env.PORT || 3000;
-let HF_API_TOKEN = process.env.HF_API_TOKEN || '';
-
-const server = http.createServer(async (req, res) => {
+module.exports = async (req, res) => {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -84,30 +79,5 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // Serve static files
-    let filePath = req.url === '/' ? '/index.html' : req.url;
-    filePath = path.join(__dirname, filePath);
-
-    const ext = path.extname(filePath);
-    const contentTypes = {
-        '.html': 'text/html',
-        '.js': 'text/javascript',
-        '.css': 'text/css',
-        '.json': 'application/json'
-    };
-
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            res.writeHead(404);
-            res.end('Not found');
-        } else {
-            res.writeHead(200, { 'Content-Type': contentTypes[ext] || 'text/plain' });
-            res.end(content);
-        }
-    });
-});
-
-server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`API Token ${HF_API_TOKEN ? 'loaded' : 'NOT SET - set HF_API_TOKEN environment variable'}`);
-});
+    res.status(404).json({ error: 'Not found' });
+};
