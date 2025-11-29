@@ -20,20 +20,14 @@ module.exports = async (req, res) => {
 
         const { text } = req.body;
         
-        const response = await fetch('https://router.huggingface.co/models/sshleifer/distilbart-cnn-12-6', {
+        const response = await fetch('https://router.huggingface.co/models/facebook/bart-large-cnn', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${HF_API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: text.substring(0, 1000),
-                parameters: {
-                    max_length: 130,
-                    min_length: 30,
-                    do_sample: false
-                },
-                options: { wait_for_model: true }
+                inputs: text.substring(0, 1000)
             })
         });
 

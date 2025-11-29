@@ -1,7 +1,7 @@
 // Application Configuration
 const HF_CONFIG = {
     BASE_URL: 'https://router.huggingface.co/models/',
-    MODEL_NAME: 'sshleifer/distilbart-cnn-12-6',
+    MODEL_NAME: 'facebook/bart-large-cnn',
     get API_ENDPOINT() {
         return this.BASE_URL + this.MODEL_NAME;
     },
