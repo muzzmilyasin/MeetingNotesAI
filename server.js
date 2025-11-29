@@ -79,5 +79,6 @@ module.exports = async (req, res) => {
         return;
     }
 
-    res.status(404).json({ error: 'Not found' });
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
 };
