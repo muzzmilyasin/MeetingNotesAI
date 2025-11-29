@@ -212,11 +212,19 @@ function closeModal() {
 window.onclick = function(event) {
     const folderModal = document.getElementById('folderModal');
     const confirmModal = document.getElementById('confirmModal');
+    const addEventModal = document.getElementById('addEventModal');
+    const emojiModal = document.getElementById('emojiModal');
     if (event.target === folderModal) {
         folderModal.style.display = 'none';
     }
     if (event.target === confirmModal) {
         confirmModal.style.display = 'none';
+    }
+    if (event.target === addEventModal) {
+        closeAddEventModal();
+    }
+    if (event.target === emojiModal) {
+        closeEmojiModal();
     }
 }
 
@@ -236,9 +244,41 @@ function displayFolders() {
         `).join('')}
     `;
     
-    emojiPicker.innerHTML = emojis.map(e => 
+    // Calculate how many emojis can fit
+    const pickerWidth = emojiPicker.offsetWidth || 300;
+    const emojiWidth = 52; // min-width (44) + gap (8)
+    const plusBtnWidth = 52;
+    const maxEmojis = Math.floor((pickerWidth - 16) / emojiWidth); // Subtract padding
+    
+    // If all emojis fit, show all. Otherwise show (maxEmojis - 1) + plus button
+    const canFitAll = emojis.length <= maxEmojis;
+    const visibleCount = canFitAll ? emojis.length : Math.max(1, maxEmojis - 1);
+    
+    emojiPicker.innerHTML = emojis.slice(0, visibleCount).map(e => 
         `<span class="emoji-option ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}', event)">${e}</span>`
+    ).join('') + (!canFitAll ? '<button class="emoji-plus-btn" onclick="openEmojiModal()">+</button>' : '');
+}
+
+function openEmojiModal() {
+    const modal = document.getElementById('emojiModal');
+    const grid = document.getElementById('emojiModalGrid');
+    
+    grid.innerHTML = emojis.map(e => 
+        `<span class="emoji-option ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmojiFromModal('${e}')">${e}</span>`
     ).join('');
+    
+    modal.style.display = 'flex';
+}
+
+function closeEmojiModal() {
+    const modal = document.getElementById('emojiModal');
+    modal.style.display = 'none';
+}
+
+function selectEmojiFromModal(emoji) {
+    selectedEmoji = emoji;
+    closeEmojiModal();
+    displayFolders();
 }
 
 // ============================================================================
@@ -433,7 +473,11 @@ function displayEvents() {
     filtered.sort((a, b) => a.date - b.date);
 
     if (filtered.length === 0) {
-        container.innerHTML = '<div class="no-events">No events scheduled</div>';
+        if (currentPage === 'home') {
+            container.innerHTML = '<div class="no-events">No meetings scheduled for today<br><a href="#" onclick="switchPage(\'events\'); return false;" class="no-events-link">Go to Events to set up a meeting</a></div>';
+        } else {
+            container.innerHTML = '<div class="no-events">No events scheduled</div>';
+        }
         return;
     }
 
@@ -676,6 +720,7 @@ async function summarizeTranscription(eventId) {
         
         const response = await fetch(apiEndpoint, {
             method: 'POST',
+            mode: 'cors',
             headers: {
                 'Authorization': `Bearer ${API_TOKEN}`,
                 'Content-Type': 'application/json',
@@ -698,7 +743,15 @@ async function summarizeTranscription(eventId) {
             
             if (response.status === 401 || response.status === 403) {
                 localStorage.removeItem(tokenKey);
-                alert(ERROR_MESSAGES?.API_TOKEN_INVALID || 'Invalid API token. Please check your token and try again.');
+                const retry = confirm('Invalid API token. Would you like to enter a new token?');
+                if (retry) {
+                    const newToken = prompt('Enter your Hugging Face API token:');
+                    if (newToken && newToken.trim()) {
+                        localStorage.setItem(tokenKey, newToken.trim());
+                        summarizeTranscription(eventId);
+                        return;
+                    }
+                }
                 btn.textContent = '✨ Summarize';
                 btn.disabled = false;
                 return;
@@ -740,8 +793,24 @@ async function summarizeTranscription(eventId) {
         }
     } catch (err) {
         console.error('Summarization error:', err);
-        const errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
-        alert('Error: ' + errorMsg);
+        let errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
+        
+        if (err.message && err.message.includes('Failed to fetch')) {
+            errorMsg = 'Network error: Unable to connect to Hugging Face API.';
+            const retry = confirm(errorMsg + ' Would you like to try with a different API token?');
+            if (retry) {
+                localStorage.removeItem(tokenKey);
+                const newToken = prompt('Enter your Hugging Face API token:');
+                if (newToken && newToken.trim()) {
+                    localStorage.setItem(tokenKey, newToken.trim());
+                    summarizeTranscription(eventId);
+                    return;
+                }
+            }
+        } else {
+            alert('Error: ' + errorMsg);
+        }
+        
         btn.textContent = '✨ Summarize';
         btn.disabled = false;
     }
@@ -838,6 +907,71 @@ function closeEventDetails() {
     displayFolderEvents();
 }
 
+// ============================================================================
+// ADD EVENT MODAL (MOBILE)
+// ============================================================================
+
+function openAddEventModal() {
+    const modal = document.getElementById('addEventModal');
+    modal.style.display = 'flex';
+}
+
+function closeAddEventModal() {
+    const modal = document.getElementById('addEventModal');
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.animation = 'slideOut 0.3s';
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modalContent.style.animation = '';
+        document.getElementById('modalEventTitle').value = '';
+        document.getElementById('modalEventLocation').value = '';
+        document.getElementById('modalEventDate').value = '';
+    }, 300);
+}
+
+function addEventFromModal() {
+    const titleInput = document.getElementById('modalEventTitle');
+    const locationInput = document.getElementById('modalEventLocation');
+    const dateInput = document.getElementById('modalEventDate');
+    
+    const title = titleInput.value.trim();
+    const location = locationInput.value.trim();
+    const date = dateInput.value;
+
+    if (!title || !location || !date) {
+        alert(ERROR_MESSAGES?.INVALID_EVENT_DATA || 'Please fill all fields');
+        return;
+    }
+    
+    if (VALIDATION) {
+        if (title.length < VALIDATION.MIN_EVENT_TITLE_LENGTH || 
+            title.length > VALIDATION.MAX_EVENT_TITLE_LENGTH) {
+            alert(`Title must be between ${VALIDATION.MIN_EVENT_TITLE_LENGTH} and ${VALIDATION.MAX_EVENT_TITLE_LENGTH} characters`);
+            return;
+        }
+    }
+
+    const newEvent = {
+        id: Date.now(),
+        title: title,
+        location: location,
+        date: new Date(date),
+        transcription: '',
+        summary: '',
+        keyPoints: [],
+        folderIds: []
+    };
+
+    events.push(newEvent);
+
+    const storageKey = STORAGE_KEYS?.EVENTS || 'events';
+    localStorage.setItem(storageKey, JSON.stringify(events));
+
+    closeAddEventModal();
+    displayEvents();
+}
+
 async function toggleModalRecording(eventId) {
     const wasRecording = currentRecordingEventId === eventId;
     await toggleRecording(eventId);
@@ -887,6 +1021,12 @@ function pauseModalRecording(eventId) {
 if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
     console.warn('Speech recognition not supported in this browser');
 }
+
+window.addEventListener('resize', () => {
+    if (currentPage === 'folders') {
+        displayFolders();
+    }
+});
 
 displayFolders();
 switchPage('home');

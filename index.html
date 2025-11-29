@@ -13,6 +13,9 @@
     <!-- Page Title -->
     <title>Meeting Notes AI - Smart Meeting Management</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎤</text></svg>">
+    
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -36,6 +39,9 @@
              ==================================================================== -->
         <div id="eventsPage" style="display:none">
             <h2 class="page-title">📅 All Events</h2>
+            
+            <!-- Mobile Add Event Button -->
+            <button class="mobile-add-event-btn" onclick="openAddEventModal()" aria-label="Add new event">+ Add Event</button>
             
             <!-- Event Creation Form -->
             <div class="add-event">
@@ -135,6 +141,33 @@
         <div class="modal-content">
             <span class="close" onclick="closeEventDetails()" aria-label="Close modal">&times;</span>
             <div id="eventDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         ADD EVENT MODAL - Mobile-friendly event creation popup
+         ==================================================================== -->
+    <div id="addEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddEventModal()" aria-label="Close modal">&times;</span>
+            <h3>Add New Event</h3>
+            <div class="modal-form">
+                <input type="text" id="modalEventTitle" placeholder="Event title" aria-label="Event title">
+                <input type="text" id="modalEventLocation" placeholder="Location" aria-label="Event location">
+                <input type="datetime-local" id="modalEventDate" aria-label="Event date and time">
+                <button onclick="addEventFromModal()" class="modal-add-btn">Add Event</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         EMOJI PICKER MODAL - Mobile emoji selection popup
+         ==================================================================== -->
+    <div id="emojiModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEmojiModal()" aria-label="Close modal">&times;</span>
+            <h3>Select Emoji</h3>
+            <div class="emoji-grid" id="emojiModalGrid"></div>
         </div>
     </div>
 
