@@ -1,8 +1,0 @@
-pick 5e97ecd 1st Commit
-reword 4c08127 Deploy to Render
-pick 16990dd Deploy to Vercel
-pick 503ce5f Updated URL
-pick 672bdfa Fixed API URL
-pick dc70c80 Clean up
-pick cb09799 Fixed Hugging face API endpoint
-pick HEAD Remove outdated error messages

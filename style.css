@@ -1393,3 +1393,69 @@ h1 {
         font-size: 14px;
     }
 }
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.summarize-btn:disabled,
+.modal-summarize-btn:disabled {
+    position: relative;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.summarize-btn:disabled::before,
+.modal-summarize-btn:disabled::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Fade in animation for summary and key points */
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.summary, .key-points {
+    animation: fadeInSlide 0.5s ease-out;
+}
+
+/* Fade out animation for deleted items */
+@keyframes fadeOutScale {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+.summary.deleting,
+.key-points.deleting,
+.transcription.deleting,
+.transcript-section.deleting {
+    animation: fadeOutScale 0.3s ease-out forwards;
+}

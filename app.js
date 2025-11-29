@@ -360,7 +360,7 @@ function confirmDelete() {
             events[eventIndex].transcription = '';
             const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
             localStorage.setItem(eventsKey, JSON.stringify(events));
-            closeEventDetails();
+            showEventDetails(window.confirmDeleteId);
         }
     } else if (window.confirmDeleteType === 'summary') {
         const eventIndex = events.findIndex(e => e.id === window.confirmDeleteId);
@@ -368,7 +368,7 @@ function confirmDelete() {
             events[eventIndex].summary = '';
             const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
             localStorage.setItem(eventsKey, JSON.stringify(events));
-            closeEventDetails();
+            showEventDetails(window.confirmDeleteId);
         }
     } else if (window.confirmDeleteType === 'keypoints') {
         const eventIndex = events.findIndex(e => e.id === window.confirmDeleteId);
@@ -376,7 +376,7 @@ function confirmDelete() {
             events[eventIndex].keyPoints = [];
             const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
             localStorage.setItem(eventsKey, JSON.stringify(events));
-            closeEventDetails();
+            showEventDetails(window.confirmDeleteId);
         }
     } else if (window.confirmDeleteType === 'section') {
         const eventIndex = events.findIndex(e => e.id === window.confirmDeleteId);
@@ -386,7 +386,7 @@ function confirmDelete() {
             events[eventIndex].transcription = sections.join('\n\n\n');
             const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
             localStorage.setItem(eventsKey, JSON.stringify(events));
-            closeEventDetails();
+            showEventDetails(window.confirmDeleteId);
         }
     } else {
         const cards = document.querySelectorAll('.event-card');
@@ -756,7 +756,15 @@ async function summarizeTranscription(eventId) {
             const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
             localStorage.setItem(eventsKey, JSON.stringify(events));
             
-            displayEvents();
+            btn.textContent = '✨ Summarize';
+            btn.disabled = false;
+            
+            const modal = document.getElementById('eventDetailsModal');
+            if (modal && modal.style.display === 'flex') {
+                showEventDetails(eventId);
+            } else {
+                displayEvents();
+            }
         }
     } catch (err) {
         console.error('Summarization error:', err);
@@ -842,10 +850,10 @@ function showEventDetails(eventId) {
             <button class="modal-record-btn" id="modal-record-${event.id}" onclick="toggleModalRecording(${event.id})" style="flex: 1;">${isRecording ? '⏹️ Stop' : '🎤 Record'}</button>
             <button class="modal-pause-btn" id="modal-pause-${event.id}" onclick="pauseModalRecording(${event.id})" style="flex: 1; display: ${isRecording ? 'block' : 'none'};">${isPaused ? '▶️ Resume' : '⏸️ Pause'}</button>
         </div>
-        ${event.summary ? `<div class="summary"><strong>Summary:</strong><button class="clear-transcription" onclick="clearSummary(${event.id}); closeEventDetails();" title="Clear summary">×</button> ${event.summary}</div>` : ''}
-        ${event.keyPoints && event.keyPoints.length > 0 ? `<div class="key-points"><strong>Key Points:</strong><button class="clear-transcription" onclick="clearKeyPoints(${event.id}); closeEventDetails();" title="Clear key points">×</button><ul>${event.keyPoints.map(p => `<li>${p}</li>`).join('')}</ul></div>` : ''}
-        ${event.transcription ? `<div class="transcription"><strong>Notes:</strong><button class="clear-transcription" onclick="clearTranscription(${event.id}); closeEventDetails();" title="Clear all transcription">×</button><br>${renderTranscription(event.transcription, event.id)}</div>` : '<p>No transcription available</p>'}
-        ${event.transcription && !event.summary ? `<div style="text-align: center; margin: 20px 0;"><button class="modal-summarize-btn" onclick="summarizeTranscription(${event.id})">✨ Summarize Transcription</button></div>` : ''}
+        ${event.summary ? `<div class="summary"><strong>Summary:</strong><button class="clear-transcription" onclick="clearSummary(${event.id});" title="Clear summary">×</button> ${event.summary}</div>` : ''}
+        ${event.keyPoints && event.keyPoints.length > 0 ? `<div class="key-points"><strong>Key Points:</strong><button class="clear-transcription" onclick="clearKeyPoints(${event.id});" title="Clear key points">×</button><ul>${event.keyPoints.map(p => `<li>${p}</li>`).join('')}</ul></div>` : ''}
+        ${event.transcription ? `<div class="transcription"><strong>Notes:</strong><button class="clear-transcription" onclick="clearTranscription(${event.id});" title="Clear all transcription">×</button><br>${renderTranscription(event.transcription, event.id)}</div>` : '<p>No transcription available</p>'}
+        ${event.transcription ? `<div style="text-align: center; margin: 20px 0;"><button class="modal-summarize-btn" onclick="summarizeTranscription(${event.id})">✨ ${event.summary ? 'Re-summarize' : 'Summarize'} Transcription</button></div>` : ''}
     `;
     
     modal.style.display = 'flex';
