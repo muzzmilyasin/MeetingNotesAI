@@ -676,6 +676,7 @@ async function summarizeTranscription(eventId) {
         
         const response = await fetch(apiEndpoint, {
             method: 'POST',
+            mode: 'cors',
             headers: {
                 'Authorization': `Bearer ${API_TOKEN}`,
                 'Content-Type': 'application/json',
@@ -740,7 +741,12 @@ async function summarizeTranscription(eventId) {
         }
     } catch (err) {
         console.error('Summarization error:', err);
-        const errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
+        let errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
+        
+        if (err.message && err.message.includes('Failed to fetch')) {
+            errorMsg = 'Network error: Unable to connect to Hugging Face API. Please check your internet connection and ensure your API token is valid.';
+        }
+        
         alert('Error: ' + errorMsg);
         btn.textContent = '✨ Summarize';
         btn.disabled = false;
