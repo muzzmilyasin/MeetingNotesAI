@@ -1,21 +1,14 @@
 // Application Configuration
-const HF_CONFIG = {
-    BASE_URL: 'https://router.huggingface.co/models/',
-    MODEL_NAME: 'facebook/bart-large-cnn',
-    get API_ENDPOINT() {
-        return this.BASE_URL + this.MODEL_NAME;
-    },
-    MAX_INPUT_LENGTH: 1000,  // Character limit for API input
-    MAX_LENGTH: 130,         // Maximum summary length
-    MIN_LENGTH: 30,          // Minimum summary length
-    DO_SAMPLE: false         // Use greedy decoding for consistent results
+const GEMINI_CONFIG = {
+    MODEL_NAME: 'gemini-pro',
+    API_ENDPOINT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
 };
 
 // Storage Keys
 const STORAGE_KEYS = {
     EVENTS: 'events',
     FOLDERS: 'folders',
-    HF_TOKEN: 'hf_token'
+    GEMINI_KEY: 'gemini_api_key'
 };
 
 // Folder Emojis

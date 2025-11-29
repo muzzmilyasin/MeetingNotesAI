@@ -690,6 +690,15 @@ async function summarizeTranscription(eventId) {
         return;
     }
 
+    const GEMINI_API_KEY = localStorage.getItem('gemini_api_key');
+    if (!GEMINI_API_KEY) {
+        const key = prompt('Enter your Gemini API key:');
+        if (!key) return;
+        localStorage.setItem('gemini_api_key', key);
+        summarizeTranscription(eventId);
+        return;
+    }
+
     const btn = document.querySelector(`button[onclick="summarizeTranscription(${eventId})"]`);
     if (!btn) {
         console.error('Summarize button not found for event:', eventId);
@@ -700,19 +709,22 @@ async function summarizeTranscription(eventId) {
     btn.disabled = true;
 
     try {
-        const API_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3000/api/summarize'
-            : `${API_BACKEND_URL}/api/summarize`;
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                text: event.transcription
-            })
-        });
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Summarize the following meeting notes in 2-3 concise sentences:\n\n${event.transcription}`
+                        }]
+                    }]
+                })
+            }
+        );
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -720,35 +732,26 @@ async function summarizeTranscription(eventId) {
         }
 
         const result = await response.json();
+        const summary = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary generated';
         
-        if (Array.isArray(result) && result[0] && result[0].summary_text) {
-            const summary = result[0].summary_text.trim();
-            
-            const sentences = event.transcription.match(/[^.!?]+[.!?]+/g) || [];
-            
-            const minKeyPointLength = VALIDATION?.MIN_KEY_POINT_LENGTH || 20;
-            const maxKeyPoints = VALIDATION?.MAX_KEY_POINTS || 5;
-            
-            const keyPoints = sentences
-                .filter(s => s.trim().length >= minKeyPointLength)
-                .slice(0, maxKeyPoints)
-                .map(s => s.trim());
+        const sentences = event.transcription.match(/[^.!?]+[.!?]+/g) || [];
+        const minKeyPointLength = VALIDATION?.MIN_KEY_POINT_LENGTH || 20;
+        const maxKeyPoints = VALIDATION?.MAX_KEY_POINTS || 5;
+        
+        const keyPoints = sentences
+            .filter(s => s.trim().length >= minKeyPointLength)
+            .slice(0, maxKeyPoints)
+            .map(s => s.trim());
 
-            const eventIndex = events.findIndex(e => e.id === eventId);
-            if (eventIndex !== -1) {
-                events[eventIndex].summary = summary;
-                events[eventIndex].keyPoints = keyPoints;
-                
-                const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
-                localStorage.setItem(eventsKey, JSON.stringify(events));
-                
-                displayEvents();
-            }
-        } else {
-            console.error('Unexpected API response format:', result);
-            alert('Error: Unexpected response from API. ' + JSON.stringify(result));
-            btn.textContent = '✨ Summarize';
-            btn.disabled = false;
+        const eventIndex = events.findIndex(e => e.id === eventId);
+        if (eventIndex !== -1) {
+            events[eventIndex].summary = summary;
+            events[eventIndex].keyPoints = keyPoints;
+            
+            const eventsKey = STORAGE_KEYS?.EVENTS || 'events';
+            localStorage.setItem(eventsKey, JSON.stringify(events));
+            
+            displayEvents();
         }
     } catch (err) {
         console.error('Summarization error:', err);
