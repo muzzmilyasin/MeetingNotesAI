@@ -752,11 +752,7 @@ async function summarizeTranscription(eventId) {
         }
     } catch (err) {
         console.error('Summarization error:', err);
-        if (err.message && err.message.includes('Failed to fetch')) {
-            alert('Backend not running! Deploy to Render: https://render.com');
-        } else {
-            alert('Error: ' + err.message);
-        }
+        alert('Error: ' + err.message);
         btn.textContent = '✨ Summarize';
         btn.disabled = false;
     }
