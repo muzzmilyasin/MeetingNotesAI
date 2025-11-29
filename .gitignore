@@ -1,17 +1,4 @@
-# Operating System Files
+node_modules/
+.env
 .DS_Store
 Thumbs.db
-
-# Editor Files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Logs
-*.log
-
-# Temporary Files
-*.tmp
-*.temp

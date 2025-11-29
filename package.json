@@ -4,10 +4,8 @@
   "description": "A professional web application for managing meetings with AI-powered transcription and summarization capabilities",
   "main": "app.js",
   "scripts": {
-    "start": "python -m http.server 8000",
-    "serve": "npx http-server -p 8000",
-    "serve:python": "python -m http.server 8000",
-    "serve:node": "npx http-server -p 8000 -c-1"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "meeting-notes",

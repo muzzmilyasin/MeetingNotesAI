@@ -214,6 +214,7 @@ window.onclick = function(event) {
     const confirmModal = document.getElementById('confirmModal');
     const addEventModal = document.getElementById('addEventModal');
     const emojiModal = document.getElementById('emojiModal');
+    const apiKeyModal = document.getElementById('apiKeyModal');
     if (event.target === folderModal) {
         folderModal.style.display = 'none';
     }
@@ -225,6 +226,9 @@ window.onclick = function(event) {
     }
     if (event.target === emojiModal) {
         closeEmojiModal();
+    }
+    if (event.target === apiKeyModal) {
+        closeApiKeyModal();
     }
 }
 
@@ -677,6 +681,54 @@ function deleteSummary(eventId) {
     }
 }
 
+async function checkApiKey() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/check-key`);
+        const data = await response.json();
+        return data.hasKey;
+    } catch (err) {
+        console.error('Failed to check API key:', err);
+        alert('Server not running! Start the backend with: node server.js');
+        throw err;
+    }
+}
+
+function showApiKeyModal() {
+    document.getElementById('apiKeyModal').style.display = 'flex';
+}
+
+function closeApiKeyModal() {
+    document.getElementById('apiKeyModal').style.display = 'none';
+}
+
+async function saveApiKey() {
+    const input = document.getElementById('apiKeyInput');
+    const apiKey = input.value.trim();
+    
+    if (!apiKey) {
+        alert('Please enter an API key');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/save-key`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey })
+        });
+        
+        if (response.ok) {
+            closeApiKeyModal();
+            input.value = '';
+            alert('API key saved successfully!');
+        } else {
+            alert('Failed to save API key');
+        }
+    } catch (err) {
+        alert('Error saving API key: ' + err.message);
+    }
+}
+
 async function summarizeTranscription(eventId) {
     const event = events.find(e => e.id === eventId);
     
@@ -690,16 +742,10 @@ async function summarizeTranscription(eventId) {
         return;
     }
 
-    const tokenKey = STORAGE_KEYS?.HF_TOKEN || 'hf_token';
-    let API_TOKEN = localStorage.getItem(tokenKey);
-    
-    if (!API_TOKEN) {
-        API_TOKEN = prompt(ERROR_MESSAGES?.API_TOKEN_REQUIRED || 'Enter your Hugging Face API token:');
-        if (!API_TOKEN || !API_TOKEN.trim()) {
-            return;
-        }
-        API_TOKEN = API_TOKEN.trim();
-        localStorage.setItem(tokenKey, API_TOKEN);
+    const hasKey = await checkApiKey();
+    if (!hasKey) {
+        showApiKeyModal();
+        return;
     }
 
     const btn = document.querySelector(`button[onclick="summarizeTranscription(${eventId})"]`);
@@ -712,51 +758,18 @@ async function summarizeTranscription(eventId) {
     btn.disabled = true;
 
     try {
-        const apiEndpoint = HF_CONFIG?.API_ENDPOINT || 
-            'https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6';
-        
-        const maxInputLength = HF_CONFIG?.MAX_INPUT_LENGTH || 1000;
-        const inputText = event.transcription.substring(0, maxInputLength);
-        
-        const response = await fetch(apiEndpoint, {
+        const response = await fetch(`${API_BASE_URL}/api/summarize`, {
             method: 'POST',
-            mode: 'cors',
             headers: {
-                'Authorization': `Bearer ${API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: inputText,
-                parameters: {
-                    max_length: HF_CONFIG?.MAX_LENGTH || 130,
-                    min_length: HF_CONFIG?.MIN_LENGTH || 30,
-                    do_sample: HF_CONFIG?.DO_SAMPLE || false
-                },
-                options: {
-                    wait_for_model: true
-                }
+                text: event.transcription
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem(tokenKey);
-                const retry = confirm('Invalid API token. Would you like to enter a new token?');
-                if (retry) {
-                    const newToken = prompt('Enter your Hugging Face API token:');
-                    if (newToken && newToken.trim()) {
-                        localStorage.setItem(tokenKey, newToken.trim());
-                        summarizeTranscription(eventId);
-                        return;
-                    }
-                }
-                btn.textContent = '✨ Summarize';
-                btn.disabled = false;
-                return;
-            }
-            
             throw new Error(`API error: ${response.status} - ${errorText}`);
         }
 
@@ -796,21 +809,10 @@ async function summarizeTranscription(eventId) {
         let errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
         
         if (err.message && err.message.includes('Failed to fetch')) {
-            errorMsg = 'Network error: Unable to connect to Hugging Face API.';
-            const retry = confirm(errorMsg + ' Would you like to try with a different API token?');
-            if (retry) {
-                localStorage.removeItem(tokenKey);
-                const newToken = prompt('Enter your Hugging Face API token:');
-                if (newToken && newToken.trim()) {
-                    localStorage.setItem(tokenKey, newToken.trim());
-                    summarizeTranscription(eventId);
-                    return;
-                }
-            }
-        } else {
-            alert('Error: ' + errorMsg);
+            errorMsg = 'Server not running! Start with: node server.js';
         }
         
+        alert('Error: ' + errorMsg);
         btn.textContent = '✨ Summarize';
         btn.disabled = false;
     }
