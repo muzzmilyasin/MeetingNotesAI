@@ -19,20 +19,41 @@ module.exports = async (req, res) => {
         }
 
         const { text } = req.body;
-        
-        const response = await fetch('https://router.huggingface.co/models/facebook/bart-large-cnn', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${HF_API_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                inputs: text.substring(0, 1000)
-            })
-        });
 
-        const result = await response.json();
+        // Request to the router
+        const response = await fetch(
+            'https://router.huggingface.co/models/facebook/bart-large-cnn',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${HF_API_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    inputs: text.substring(0, 1000),
+                    parameters: {
+                        max_length: 130,
+                        min_length: 30,
+                        do_sample: false
+                    }
+                })
+            }
+        );
+
+        // SAFELY parse text response
+        const raw = await response.text();
+
+        let result;
+        try {
+            result = JSON.parse(raw);
+        } catch {
+            return res.status(500).json({
+                error: `Non-JSON response from HF Router: ${raw}`
+            });
+        }
+
         return res.status(response.ok ? 200 : response.status).json(result);
+
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
