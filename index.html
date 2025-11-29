@@ -172,28 +172,11 @@
     </div>
 
     <!-- ====================================================================
-         API KEY MODAL - Collect Hugging Face API token
-         ==================================================================== -->
-    <div id="apiKeyModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>🔑 API Key Required</h3>
-            <p>Enter your Hugging Face API token to enable AI summarization:</p>
-            <div class="modal-form">
-                <input type="password" id="apiKeyInput" placeholder="hf_..." aria-label="API Key">
-                <button onclick="saveApiKey()" class="modal-add-btn">Save & Continue</button>
-                <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                    Get your free token at <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ====================================================================
          APPLICATION SCRIPTS
-         Load order: config.js (constants) → config-env.js (environment) → app.js (main logic)
+         Load order: config.js (constants) → config-api.js (backend URL) → app.js (main logic)
          ==================================================================== -->
     <script src="config.js"></script>
-    <script src="config-env.js"></script>
+    <script src="config-api.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

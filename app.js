@@ -214,7 +214,6 @@ window.onclick = function(event) {
     const confirmModal = document.getElementById('confirmModal');
     const addEventModal = document.getElementById('addEventModal');
     const emojiModal = document.getElementById('emojiModal');
-    const apiKeyModal = document.getElementById('apiKeyModal');
     if (event.target === folderModal) {
         folderModal.style.display = 'none';
     }
@@ -226,9 +225,6 @@ window.onclick = function(event) {
     }
     if (event.target === emojiModal) {
         closeEmojiModal();
-    }
-    if (event.target === apiKeyModal) {
-        closeApiKeyModal();
     }
 }
 
@@ -681,54 +677,6 @@ function deleteSummary(eventId) {
     }
 }
 
-async function checkApiKey() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/check-key`);
-        const data = await response.json();
-        return data.hasKey;
-    } catch (err) {
-        console.error('Failed to check API key:', err);
-        alert('Server not running! Start the backend with: node server.js');
-        throw err;
-    }
-}
-
-function showApiKeyModal() {
-    document.getElementById('apiKeyModal').style.display = 'flex';
-}
-
-function closeApiKeyModal() {
-    document.getElementById('apiKeyModal').style.display = 'none';
-}
-
-async function saveApiKey() {
-    const input = document.getElementById('apiKeyInput');
-    const apiKey = input.value.trim();
-    
-    if (!apiKey) {
-        alert('Please enter an API key');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/save-key`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey })
-        });
-        
-        if (response.ok) {
-            closeApiKeyModal();
-            input.value = '';
-            alert('API key saved successfully!');
-        } else {
-            alert('Failed to save API key');
-        }
-    } catch (err) {
-        alert('Error saving API key: ' + err.message);
-    }
-}
-
 async function summarizeTranscription(eventId) {
     const event = events.find(e => e.id === eventId);
     
@@ -742,12 +690,6 @@ async function summarizeTranscription(eventId) {
         return;
     }
 
-    const hasKey = await checkApiKey();
-    if (!hasKey) {
-        showApiKeyModal();
-        return;
-    }
-
     const btn = document.querySelector(`button[onclick="summarizeTranscription(${eventId})"]`);
     if (!btn) {
         console.error('Summarize button not found for event:', eventId);
@@ -758,7 +700,11 @@ async function summarizeTranscription(eventId) {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/summarize`, {
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api/summarize'
+            : `${API_BACKEND_URL}/api/summarize`;
+
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -806,13 +752,11 @@ async function summarizeTranscription(eventId) {
         }
     } catch (err) {
         console.error('Summarization error:', err);
-        let errorMsg = err.message || ERROR_MESSAGES?.API_REQUEST_FAILED || 'Failed to generate summary.';
-        
         if (err.message && err.message.includes('Failed to fetch')) {
-            errorMsg = 'Server not running! Start with: node server.js';
+            alert('Backend not running! Deploy to Render: https://render.com');
+        } else {
+            alert('Error: ' + err.message);
         }
-        
-        alert('Error: ' + errorMsg);
         btn.textContent = '✨ Summarize';
         btn.disabled = false;
     }

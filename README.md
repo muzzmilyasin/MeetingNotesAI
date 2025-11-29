@@ -15,22 +15,20 @@ AI-powered meeting management with voice recording, transcription, and summariza
 
 ## 🚀 Quick Start
 
+### Hybrid Deployment (Recommended)
+
+**Frontend**: GitHub Pages (free)
+**Backend**: Render (free)
+
+See [HYBRID_DEPLOY.md](HYBRID_DEPLOY.md) for step-by-step guide (5 minutes)
+
 ### Local Development
 
 ```bash
-# Set API token
-set HF_API_TOKEN=your_token_here
-
-# Start server
+set HF_API_TOKEN=your_token
 node server.js
-
-# Open browser
-http://localhost:3000
+# Open http://localhost:3000
 ```
-
-### Deploy to Render (Recommended)
-
-See [DEPLOY.md](DEPLOY.md) for step-by-step guide.
 
 ## 🔧 Setup
 

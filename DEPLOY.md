@@ -1,6 +1,11 @@
 # Deployment Guide
 
-## Quick Deploy to Render (5 minutes)
+## ⚠️ Important: GitHub Pages Won't Work
+
+Hugging Face API blocks direct browser calls (CORS policy).
+You **must** deploy the backend to Render, Railway, or Vercel.
+
+## Quick Deploy to Render (5 minutes, FREE)
 
 ### 1. Get API Token
 Get free Hugging Face token: https://huggingface.co/settings/tokens
