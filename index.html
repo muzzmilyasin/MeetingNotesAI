@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Character encoding and viewport settings -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Meeting Notes AI - Professional meeting management with voice recording and AI summarization">
+    <meta name="author" content="Muzzamil Yasin">
+    <meta name="keywords" content="meeting notes, AI transcription, voice recording, meeting management, AI summarization">
+    
+    <!-- Page Title -->
+    <title>Meeting Notes AI - Smart Meeting Management</title>
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div class="container">
+        <!-- Application Header -->
+        <h1>Meeting Notes AI</h1>
+        
+        <!-- ====================================================================
+             HOME PAGE - Displays today's scheduled events
+             ==================================================================== -->
+        <div id="homePage">
+            <h2 class="page-title">🏠 Today's Schedule</h2>
+            <!-- Container for today's events, dynamically populated by JavaScript -->
+            <div id="eventsContainer"></div>
+        </div>
+
+        <!-- ====================================================================
+             EVENTS PAGE - Create and manage all events
+             ==================================================================== -->
+        <div id="eventsPage" style="display:none">
+            <h2 class="page-title">📅 All Events</h2>
+            
+            <!-- Event Creation Form -->
+            <div class="add-event">
+                <input type="text" id="eventTitle" placeholder="Event title" aria-label="Event title">
+                <input type="text" id="eventLocation" placeholder="Location" aria-label="Event location">
+                <input type="datetime-local" id="eventDate" aria-label="Event date and time">
+                <button onclick="addEvent()" aria-label="Add new event">Add Event</button>
+            </div>
+
+            <!-- View Filter Buttons - Filter events by time period -->
+            <div class="view-buttons">
+                <button class="active" onclick="switchView('today')">Today</button>
+                <button onclick="switchView('week')">This Week</button>
+                <button onclick="switchView('month')">This Month</button>
+            </div>
+
+            <!-- Container for filtered events, dynamically populated by JavaScript -->
+            <div id="eventsPageContainer"></div>
+        </div>
+
+        <!-- ====================================================================
+             FOLDERS PAGE - Organize events into custom folders
+             ==================================================================== -->
+        <div id="foldersPage" style="display:none">
+            <h2 class="page-title">📁 Folders</h2>
+            
+            <!-- Folder Management Section -->
+            <div class="folder-section">
+                <h3>Manage Folders</h3>
+                
+                <!-- Folder List - Displays all created folders -->
+                <div class="folder-list" id="foldersContainer"></div>
+                
+                <!-- Folder Creation Input -->
+                <div class="folder-input">
+                    <input type="text" id="folderName" placeholder="New folder name" aria-label="Folder name">
+                    <button onclick="addFolder()" aria-label="Create new folder">Create Folder</button>
+                </div>
+                
+                <!-- Emoji Picker - Select icon for new folder -->
+                <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
+            
+            <!-- Container for events in selected folder -->
+            <div id="folderEventsContainer"></div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         FOOTER NAVIGATION - Bottom navigation bar for page switching
+         ==================================================================== -->
+    <div class="footer">
+        <button class="footer-btn active" id="btn-home" onclick="switchPage('home')" aria-label="Home page">
+            <span class="footer-icon">🏠</span>
+            <span>Home</span>
+        </button>
+        <button class="footer-btn" id="btn-events" onclick="switchPage('events')" aria-label="Events page">
+            <span class="footer-icon">📅</span>
+            <span>Events</span>
+        </button>
+        <button class="footer-btn" id="btn-folders" onclick="switchPage('folders')" aria-label="Folders page">
+            <span class="footer-icon">📁</span>
+            <span>Folders</span>
+        </button>
+    </div>
+
+    <!-- ====================================================================
+         FOLDER SELECTION MODAL - Popup for adding events to folders
+         ==================================================================== -->
+    <div id="folderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()" aria-label="Close modal">&times;</span>
+            <h3>Select Folder</h3>
+            <!-- Folder list for selection, dynamically populated -->
+            <div id="modalFolderList"></div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         DELETE CONFIRMATION MODAL - Confirmation dialog for deletions
+         ==================================================================== -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <h3>⚠️ Confirm Delete</h3>
+            <p id="confirmMessage">Are you sure you want to delete this event?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" onclick="confirmDelete()">Yes, Delete</button>
+                <button class="confirm-btn confirm-no" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         EVENT DETAILS MODAL - Shows full event details with transcription
+         ==================================================================== -->
+    <div id="eventDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEventDetails()" aria-label="Close modal">&times;</span>
+            <div id="eventDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         APPLICATION SCRIPTS
+         Load order: config.js (constants) → app.js (main logic)
+         ==================================================================== -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
