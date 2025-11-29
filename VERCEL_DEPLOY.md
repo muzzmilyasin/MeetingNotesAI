@@ -1,63 +1,38 @@
-# Vercel Deployment - NO CARD REQUIRED! 🎉
+# Vercel Deployment
 
 ## Step 1: Push to GitHub
 
 ```bash
 git add .
-git commit -m "Deploy to Vercel"
+git commit -m "Deploy"
 git push origin main
 ```
 
-## Step 2: Deploy to Vercel (FREE, No Card!)
+## Step 2: Deploy to Vercel
 
-1. Go to **https://vercel.com**
-2. Click **"Sign Up"** with GitHub (no card needed!)
-3. Click **"Import Project"**
-4. Select your **meeting-notes-ai** repository
-5. Click **"Import"**
-6. Click **"Environment Variables"**:
-   - **Name**: `HF_API_TOKEN`
-   - **Value**: Your Hugging Face token
-7. Click **"Deploy"**
-8. Wait 1-2 minutes
-9. **Copy your URL**: `https://your-project.vercel.app`
+1. Go to vercel.com
+2. Sign up with GitHub (FREE, no card!)
+3. Import repository
+4. Add env variable: `HF_API_TOKEN` = your token
+5. Deploy
+6. Copy URL: `https://your-project.vercel.app`
 
-## Step 3: Update Frontend Config
+## Step 3: Update config-api.js
 
-1. Open `config-api.js`
-2. Replace with your Vercel URL:
-   ```javascript
-   const API_BACKEND_URL = 'https://your-project.vercel.app';
-   ```
+```javascript
+const API_BACKEND_URL = 'https://your-project.vercel.app';
+```
 
-## Step 4: Push & Enable GitHub Pages
+## Step 4: Enable GitHub Pages
 
 ```bash
 git add config-api.js
-git commit -m "Update Vercel URL"
-git push origin main
+git commit -m "Update URL"
+git push
 ```
 
-Then: Settings → Pages → Deploy from main
+Settings → Pages → Deploy from main
 
-## Done! 🚀
+## Done!
 
-Visit: `https://YOUR_USERNAME.github.io/meeting-notes-ai`
-
-## Why Vercel?
-
-✅ **100% FREE** - No card required
-✅ **No $1 charge** - Unlike Render
-✅ **Fast deployment** - 1-2 minutes
-✅ **Auto-deploy** - Push to GitHub = auto update
-✅ **Serverless** - Scales automatically
-
-## Files Deployed
-
-**To Vercel** (Backend):
-- `server.js` ✅
-- `vercel.json` ✅
-- `package.json` ✅
-
-**To GitHub Pages** (Frontend):
-- All HTML/CSS/JS files ✅
+Visit: `https://yourusername.github.io/meeting-notes-ai`
