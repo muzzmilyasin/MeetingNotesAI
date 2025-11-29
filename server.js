@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
 
                 const { text } = JSON.parse(body);
                 
-                const response = await fetch('https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6', {
+                const response = await fetch('https://router.huggingface.co/models/sshleifer/distilbart-cnn-12-6', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${HF_API_TOKEN}`,
