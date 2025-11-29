@@ -1,7 +1,7 @@
 // Application Configuration
 const GEMINI_CONFIG = {
-    MODEL_NAME: 'gemini-pro',
-    API_ENDPOINT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+    MODEL_NAME: 'gemini-1.5-flash',
+    API_ENDPOINT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 };
 
 // Storage Keys
