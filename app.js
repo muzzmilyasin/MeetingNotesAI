@@ -537,28 +537,11 @@ async function toggleRecording(eventId) {
             let savedTranscription = transcription;
 
             recognition.onresult = (event) => {
-                let interimTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        transcription += transcript + ' ';
+                        transcription += event.results[i][0].transcript + ' ';
                         savedTranscription = transcription;
-                    } else {
-                        interimTranscript += transcript;
                     }
-                }
-                
-                const eventIndex = events.findIndex(e => e.id === eventId);
-                if (eventIndex !== -1) {
-                    events[eventIndex].transcription = (savedTranscription + interimTranscript).trim();
-                }
-                
-                const modal = document.getElementById('eventDetailsModal');
-                const content = document.getElementById('eventDetailsContent');
-                if (modal && modal.style.display === 'flex') {
-                    const currentScroll = content.scrollTop;
-                    showEventDetails(eventId);
-                    content.scrollTop = currentScroll;
                 }
             };
 
@@ -690,13 +673,10 @@ async function summarizeTranscription(eventId) {
         return;
     }
 
-    const GEMINI_API_KEY = localStorage.getItem('gemini_api_key');
+    let GEMINI_API_KEY = localStorage.getItem('gemini_api_key');
     if (!GEMINI_API_KEY) {
-        const key = prompt('Enter your Gemini API key:');
-        if (!key) return;
-        localStorage.setItem('gemini_api_key', key);
-        summarizeTranscription(eventId);
-        return;
+        GEMINI_API_KEY = 'AIzaSyBJVdg3OfjrD1jYIyQ4OQ4C1yaRCeleMEw';
+        localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
     }
 
     const btn = document.querySelector(`button[onclick="summarizeTranscription(${eventId})"]`);
@@ -719,7 +699,7 @@ async function summarizeTranscription(eventId) {
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `Summarize the following meeting notes in 2-3 concise sentences:\n\n${event.transcription}`
+                            text: `Provide a concise 2-3 sentence summary of these meeting notes:\n\n${event.transcription}`
                         }]
                     }]
                 })
@@ -730,8 +710,7 @@ async function summarizeTranscription(eventId) {
         
         if (!response.ok) {
             console.error('API Error:', result);
-            localStorage.removeItem('gemini_api_key');
-            alert(`API Error: ${result.error?.message || 'Invalid API key'}`);
+            alert(`API Error: ${result.error?.message || 'API key issue'}`);
             btn.textContent = '✨ Summarize';
             btn.disabled = false;
             return;
@@ -739,14 +718,22 @@ async function summarizeTranscription(eventId) {
         
         const summary = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary generated';
         
-        const sentences = event.transcription.match(/[^.!?]+[.!?]+/g) || [];
-        const minKeyPointLength = VALIDATION?.MIN_KEY_POINT_LENGTH || 20;
-        const maxKeyPoints = VALIDATION?.MAX_KEY_POINTS || 5;
-        
-        const keyPoints = sentences
-            .filter(s => s.trim().length >= minKeyPointLength)
-            .slice(0, maxKeyPoints)
-            .map(s => s.trim());
+        const keyPointsResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Extract 3-5 key points from these meeting notes as a bullet list:\n\n${event.transcription}` }] }]
+                })
+            }
+        );
+        const keyPointsResult = await keyPointsResponse.json();
+        const keyPointsText = keyPointsResult.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const keyPoints = keyPointsText.split('\n').filter(line => line.trim().match(/^[-*•]/) || line.trim().match(/^\d+\./))
+            .map(line => line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+            .filter(line => line.length > 0)
+            .slice(0, 5);
 
         const eventIndex = events.findIndex(e => e.id === eventId);
         if (eventIndex !== -1) {
@@ -852,7 +839,7 @@ function showEventDetails(eventId) {
         </div>
         ${event.summary ? `<div class="summary"><strong>Summary:</strong><button class="clear-transcription" onclick="clearSummary(${event.id});" title="Clear summary">×</button> ${event.summary}</div>` : ''}
         ${event.keyPoints && event.keyPoints.length > 0 ? `<div class="key-points"><strong>Key Points:</strong><button class="clear-transcription" onclick="clearKeyPoints(${event.id});" title="Clear key points">×</button><ul>${event.keyPoints.map(p => `<li>${p}</li>`).join('')}</ul></div>` : ''}
-        ${event.transcription ? `<div class="transcription"><strong>Notes:</strong><button class="clear-transcription" onclick="clearTranscription(${event.id});" title="Clear all transcription">×</button><br>${renderTranscription(event.transcription, event.id)}</div>` : '<p>No transcription available</p>'}
+        ${event.transcription || isRecording ? `<div class="transcription"><strong>Notes:</strong>${event.transcription ? `<button class="clear-transcription" onclick="clearTranscription(${event.id});" title="Clear all transcription">×</button>` : ''}<br>${event.transcription ? renderTranscription(event.transcription, event.id) : ''}${isRecording ? '<div class="recording-indicator">Recording<span class="dots">...</span></div>' : ''}</div>` : '<p>No transcription available</p>'}
         ${event.transcription ? `<div style="text-align: center; margin: 20px 0;"><button class="modal-summarize-btn" onclick="summarizeTranscription(${event.id})">✨ ${event.summary ? 'Re-summarize' : 'Summarize'} Transcription</button></div>` : ''}
     `;
     
@@ -931,27 +918,8 @@ function addEventFromModal() {
 }
 
 async function toggleModalRecording(eventId) {
-    const wasRecording = currentRecordingEventId === eventId;
     await toggleRecording(eventId);
-    
-    setTimeout(() => {
-        const recordBtn = document.getElementById(`modal-record-${eventId}`);
-        const pauseBtn = document.getElementById(`modal-pause-${eventId}`);
-        
-        if (wasRecording) {
-            if (recordBtn) {
-                recordBtn.textContent = '🎤 Record';
-                recordBtn.style.background = '#667eea';
-            }
-            if (pauseBtn) pauseBtn.style.display = 'none';
-        } else {
-            if (recordBtn) {
-                recordBtn.textContent = '⏹️ Stop';
-                recordBtn.style.background = '#ef4444';
-            }
-            if (pauseBtn) pauseBtn.style.display = 'block';
-        }
-    }, 50);
+    setTimeout(() => showEventDetails(eventId), 50);
 }
 
 function pauseModalRecording(eventId) {

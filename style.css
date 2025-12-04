@@ -1459,3 +1459,27 @@ h1 {
 .transcript-section.deleting {
     animation: fadeOutScale 0.3s ease-out forwards;
 }
+
+/* Recording indicator */
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    color: white;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(252, 129, 129, 0.4);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.recording-indicator .dots {
+    animation: blink 1.5s infinite;
+}

@@ -50,8 +50,9 @@ const PAGE_TYPES = {
 // Speech Recognition Config
 const SPEECH_CONFIG = {
     CONTINUOUS: true,
-    INTERIM_RESULTS: false,  // Set to true to see real-time transcription
-    LANGUAGE: 'en-US'        // Change to your preferred language
+    INTERIM_RESULTS: false,
+    LANGUAGE: 'en-US',
+    SHOW_LIVE_TRANSCRIPTION: false  // Disable live transcription display
 };
 
 // Validation
